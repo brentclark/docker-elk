@@ -12,8 +12,8 @@ services:
       - xpack.security.enabled=false
       - xpack.security.transport.ssl.enabled=false
     volumes:
-      - /mydata/elasticsearch/plugins:/usr/share/elasticsearch/plugins
-      - /mydata/elasticsearch/data:/usr/share/elasticsearch/data
+      - /tmp/elasticsearch_plugins:/usr/share/elasticsearch/plugins
+      - /tmp/elasticsearch_data:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
       - 9300:9300
@@ -23,7 +23,7 @@ services:
     environment:
       - TZ=Africa/Johannesburg
     volumes:
-      - /mydata/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - /tmp/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
     depends_on:
       - elasticsearch
     links:
