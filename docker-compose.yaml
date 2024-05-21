@@ -1,5 +1,4 @@
 ---
-# See https://github.com/hellgrenj/LogVoyage/blob/9b48f30c90f11cd7d5ed7afa9e3275db2835f44a/compose.yaml#L13
 version: "3"
 services:
   elasticsearch:
@@ -20,12 +19,11 @@ services:
       - xpack.security.transport.ssl.enabled=false
       - xpack.security.http.ssl.enabled=false
       - "action.auto_create_index=.app-search-*-logs-*,-.app-search-*,+*"
-        #    volumes:
-        #      - /tmp/elasticsearch_plugins:/usr/share/elasticsearch/plugins
-        #      - /tmp/elasticsearch_data:/usr/share/elasticsearch/data
-    ports:
-      - 9200:9200
-      - 9300:9300
+      #    ports:
+      #      - 9200:9200
+      #      - 9300:9300
+    expose: # only expose docker-internally
+      - 9200
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:9200/_cat/health?h=status | grep -q green"]
       retries: 300
@@ -39,8 +37,6 @@ services:
     environment:
       - TZ=Africa/Johannesburg
       - LS_JAVA_OPTS='-Xmx1g -Xms1g'
-        #volumes:
-        #      - /tmp/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
     depends_on:
       - elasticsearch
     ports:
@@ -50,8 +46,14 @@ services:
       - 4563:4563
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9600/_node/stats"]
-      retries: 300
-      interval: 1s
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     networks:
       - elastic
 
@@ -64,15 +66,18 @@ services:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - ELASTICSEARCH_USERNAME=admin
       - ELASTICSEARCH_PASSWORD=admin
+      - telemetry.enabled=false
+      - telemetry.optIn=false
     ports:
       - 5601:5601
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5601"]
-      retries: 300
-      interval: 1s
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     networks:
       - elastic
-
 networks:
   elastic:
     driver: bridge
